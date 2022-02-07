@@ -1,23 +1,23 @@
-TARGET := DnsClientDemo
+TARGET := RepoterClientDemo
 
 MUDUOSRC := ../../../SimplifyMuduo/src/
 PROTOSRC := ../../../Proto/
-DNSCLIENTSRC := ./
+CLIENTSRC := ./
 MUDUOINC := ../../../SimplifyMuduo/include/
 PROTOINC := ../../../Proto/
-DNSCLIENTINC := ./
+CLIENTINC := ./
 LIB := -lpthread -lprotobuf
 
 CXX = g++
 CPPFLAGS = -g -O2 -Wall -std=c++11
 CPPFLAGS += $(addprefix -I,$(MUDUOINC))
-CPPFLAGS += $(addprefix -I,$(DNSCLIENTINC))
+CPPFLAGS += $(addprefix -I,$(CLIENTINC))
 CPPFLAGS += $(addprefix -I,$(PROTOINC))
 
 FILETYPE = cc
 OBJS := $(MUDUOSRC)*.$(FILETYPE)
 OBJS += $(PROTOSRC)*.$(FILETYPE)
-OBJS += $(DNSCLIENTSRC)*.$(FILETYPE)
+OBJS += $(CLIENTSRC)*.$(FILETYPE)
 #OBJS := $(addsuffix .o, $(basename $(wildcard $(SRC)*.$(FILETYPE))))
 #objs : $(OBJS)
 
