@@ -1,10 +1,10 @@
 TARGET := DnsService
 
 MUDUOSRC := ../SimplifyMuduo/src/
-PROTOSRC := ./proto/
+PROTOSRC := ../Proto/
 DNSSRC := ./src/
 MUDUOINC := ../SimplifyMuduo/include/
-PROTOINC := ./proto/
+PROTOINC := ../Proto/
 DNSINC := ./include/
 LIB := -lpthread -lmysqlclient -lprotobuf
 

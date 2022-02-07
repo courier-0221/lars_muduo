@@ -1,10 +1,10 @@
 TARGET := DnsClientDemo
 
 MUDUOSRC := ../../../SimplifyMuduo/src/
-PROTOSRC := ../../proto/
+PROTOSRC := ../../../Proto/
 DNSCLIENTSRC := ./
 MUDUOINC := ../../../SimplifyMuduo/include/
-PROTOINC := ../../proto/
+PROTOINC := ../../../proto/
 DNSCLIENTINC := ./
 LIB := -lpthread -lprotobuf
 
