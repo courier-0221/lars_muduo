@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package lars;
+
+// 消息ID 
+enum MessageId {
+    ID_UNKNOW                = 0;  //proto3 enum第一个属性必须是0，用来占位
+    ID_GetRouteRequest       = 1;  //Agent --> DnsService 根据modid&cmdid获取module下所有Hosts内容的请求
+    ID_GetRouteResponse      = 2;  //DnsService --> Agent 返回module下所有Hosts内容给对应请求的响应
+
+    ID_GetHostRequest        = 3;  //AgentClient --> Agent 根据modid&cmdid获取一个最佳Host内容的请求
+    ID_GetHostResponse       = 4;  //Agent --> AgentClient 返回一个最佳Host内容给对应请求的响应
+    ID_API_GetRouteRequest   = 5;  //AgentClient --> Agent 根据modid&cmdid获取module下所有Hosts内容的请求
+    ID_API_GetRouteResponse  = 6;  //Agent --> AgentClient 返回module下所有Hosts内容给对应请求的响应
+    
+    ID_ReportStatusRequest   = 7;  //Agent --> ReportService 上报host调用状态信息的请求
+    ID_ReportRequest         = 8;  //AgentClient --> Agent  上报host调用状态信息的请求
+}
+
+enum LarsRetCode {
+    RET_SUCC                 = 0;
+    RET_OVERLOAD             = 1; //超载
+    RET_SYSTEM_ERROR         = 2; //系统错误
+    RET_NOEXIST              = 3; //资源不存在
+}
+
+//一个主机信息
+message HostInfo {
+    uint32 ip   = 1;
+    uint32 port = 2;
+}
+
+//请求：一个module下的所有Hosts信息 Agent --> DnsService
+message GetRouteRequest {
+    uint32 modid = 1; 
+    uint32 cmdid = 2;
+}
+
+//回复：一个module下的所有Hosts信息 DnsService --> Agent
+message GetRouteResponse {
+    uint32 modid = 1;    
+    uint32 cmdid = 2;
+    repeated HostInfo host = 3;
+}
+
+//report使用 一个主机调用信息
+message HostCallResult {
+    uint32  ip          = 1;    //主机ip
+    uint32  port        = 2;    //主机端口
+    uint32  succ        = 3;    //调度成功
+    uint32  err         = 4;    //调度失败
+    bool    overload    = 5;    //是否过载
+}
+
+//请求：将调度数据上报给ReportServices Agent --> ReportService
+message ReportStatusRequest {
+    uint32  modid   = 1;
+    uint32  cmdid   = 2;
+    uint32  caller  = 3;
+    int64   ts      = 4;
+    repeated HostCallResult results = 5; 
+}
+
+//请求：将调度数据上报给ReportServices AgentClient --> Agent
+message ReportRequest {
+    uint32      modid   = 1;
+    uint32      cmdid   = 2;
+    HostInfo    host    = 3;
+    int32       retcode = 4;
+}
+
+//请求：根据modid&cmdid获取一个最佳Host AgentClient --> Agent
+message GetHostRequest {
+    uint32 seq      = 1;
+    uint32 modid    = 2;
+    uint32 cmdid    = 3;
+}
+
+//回复：返回一个最佳Host内容 Agent --> AgentClient
+message GetHostResponse {
+    uint32 seq      = 1;
+    uint32 modid    = 2;
+    uint32 cmdid    = 3;
+    uint32 retcode  = 4;
+    HostInfo host   = 5;    
+}
+
+
+
