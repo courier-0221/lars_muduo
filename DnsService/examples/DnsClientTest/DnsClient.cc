@@ -29,17 +29,40 @@ class DnsClient : public IMuduoUser
 
     virtual void onMessage(TcpConnectionPtr conn, Buffer* pBuf)
 	{
-		string msg(pBuf->retrieveAllAsString());
-		
-		//解包得到数据
-		lars::GetRouteResponse rsp;
-		rsp.ParseFromArray(msg.data(), msg.size());
-		
-		cout << "DnsClient::onMessage recv tid = " << CurrentThread::tid() << " modid = " << rsp.modid() << " cmdid = " << rsp.cmdid() << " host_size = " << rsp.host_size() << endl;
-
-		for (int i = 0; i < rsp.host_size(); i++) 
+		//cout << "DnsClient::onMessage recv tid = " << CurrentThread::tid() << endl;
+		while (pBuf->readableBytes() >= MESSAGE_HEAD_LEN)  
 		{
-			cout << "DnsClient::onMessage recv -->ip = " << rsp.host(i).ip() << " -->port = " << rsp.host(i).port() << endl;
+			MsgHead head;
+			const void* data = pBuf->peek();
+			memcpy(&head, data, sizeof head);
+
+			head.msgId = networkToHost32(head.msgId);
+			head.msgLen = networkToHost32(head.msgLen);
+
+			if (head.msgLen > 65536 || head.msgLen < 0)
+			{
+				cout << "DnsClient::onMessage Invalid length:  " << head.msgLen << endl;
+				break;
+			}
+			else if (pBuf->readableBytes() >= static_cast<size_t>(head.msgLen) + MESSAGE_HEAD_LEN)	//达到一条完整的消息
+			{
+				pBuf->retrieve(MESSAGE_HEAD_LEN);   //清除msghead
+				string msg(pBuf->peek(), head.msgLen);
+				//解包得到数据
+				lars::GetRouteResponse rsp;
+				rsp.ParseFromArray(msg.data(), msg.size());
+
+				for (int i = 0; i < rsp.host_size(); i++) 
+				{
+					cout << "DnsClient::onMessage modid = " << rsp.modid() << " cmdid = " << rsp.cmdid() 
+						 << " recv -->ip = " << rsp.host(i).ip() << " -->port = " << rsp.host(i).port() << endl;
+				}
+				pBuf->retrieve(head.msgLen);    //清除msgdata
+			}
+			else		//未达到一条完整的消息
+			{
+				break;
+			}      
 		}
 	}
 
@@ -71,7 +94,7 @@ class DnsClient : public IMuduoUser
 		TcpConnectionPtr conn = _client.connection();
 		conn->send(request);
 
-		cout << "sendRouteRequestMsg msgId " << msgId << " msgLen " << msgdata.size() << endl;
+		//cout << "sendRouteRequestMsg msgId " << msgId << " msgLen " << msgdata.size() << endl;
 	}
 
 

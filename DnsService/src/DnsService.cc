@@ -77,7 +77,8 @@ void DnsService::msgGetRouteCB(MsgHead head, string &msgdata, TcpConnectionPtr c
     req.ParseFromArray(msgdata.data(), head.msgLen);
     modid = req.modid();
     cmdid = req.cmdid();
-    cout << "DnsService::msgGetRouteCB tid = " << CurrentThread::tid() << " modid = " << modid << " cmdid = " << cmdid << endl;
+    
+    //cout << "DnsService::msgGetRouteCB tid = " << CurrentThread::tid() << " modid = " << modid << " cmdid = " << cmdid << endl;
 
     //订阅
     uint64_t mod = (((uint64_t)modid) << 32) + cmdid;
@@ -98,6 +99,10 @@ void DnsService::msgGetRouteCB(MsgHead head, string &msgdata, TcpConnectionPtr c
     }
     
     //返回数据给客户端 
+    Buffer buf = {0};
+    string sendData = {0};
+    MsgHead msghead = {0};
+    //msgdata
     lars::GetRouteResponse rsp;
     rsp.set_modid(modid);
     rsp.set_cmdid(cmdid);
@@ -111,7 +116,13 @@ void DnsService::msgGetRouteCB(MsgHead head, string &msgdata, TcpConnectionPtr c
         host.set_port((uint32_t)(ip_port));
         rsp.add_host()->CopyFrom(host);
     }
-    std::string responseString;
-    rsp.SerializeToString(&responseString);
-    conn->send(responseString);
+    rsp.SerializeToString(&sendData);
+    buf.append(sendData.data(), sendData.size());
+    //msghead
+    msghead.msgId = hostToNetwork32(lars::ID_GetRouteResponse);
+    msghead.msgLen = hostToNetwork32(static_cast<int32_t>(sendData.size()));
+    buf.prepend(&msghead, sizeof msghead);
+    //msghead + msgdata ==> send
+	string response(buf.peek(), buf.readableBytes());
+    conn->send(response);
 }
