@@ -71,15 +71,12 @@ void DnsService::onWriteComplate(TcpConnectionPtr conn)
 
 void DnsService::msgGetRouteCB(MsgHead head, string &msgdata, TcpConnectionPtr conn)
 {
-    //解析proto内容 得到 modid 和 cmdIid
     int modid, cmdid;
     lars::GetRouteRequest req;
     req.ParseFromArray(msgdata.data(), head.msgLen);
     modid = req.modid();
     cmdid = req.cmdid();
     
-    //cout << "DnsService::msgGetRouteCB tid = " << CurrentThread::tid() << " modid = " << modid << " cmdid = " << cmdid << endl;
-
     //订阅
     uint64_t mod = (((uint64_t)modid) << 32) + cmdid;
     RequestModMap::iterator reques = _requesModLog.find(conn->getFd());
@@ -97,6 +94,19 @@ void DnsService::msgGetRouteCB(MsgHead head, string &msgdata, TcpConnectionPtr c
     {
         cout << "DnsService::msgGetRouteCB connfd " << conn->getFd() << " is not in RequestMap !!!" << endl;
     }
+    
+    //加入线程池
+    _threadpool.addTask(std::bind(&DnsService::threadPoolWorkTask, this, req, conn));
+}
+
+void DnsService::threadPoolWorkTask(lars::GetRouteRequest req, TcpConnectionPtr conn)
+{
+    //解析proto内容 得到 modid 和 cmdIid
+    int modid, cmdid;
+    modid = req.modid();
+    cmdid = req.cmdid();
+
+    cout << "DnsService::threadPoolWorkTask tid = " << CurrentThread::tid() << " modid = " << modid << " cmdid = " << cmdid << endl;
     
     //返回数据给客户端 
     Buffer buf = {0};

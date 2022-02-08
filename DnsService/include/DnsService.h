@@ -31,6 +31,9 @@ public:
     //根据消息id匹配处理
     void msgGetRouteCB(MsgHead head, string &msgdata, TcpConnectionPtr conn);
     OnlineClient& getAllOnlineClient(){ return _onClient; }
+private:
+    //线程池工作任务，查询数据库并构造数据返回给客户端
+    void threadPoolWorkTask(lars::GetRouteRequest req, TcpConnectionPtr conn);
 
 private:
     EventLoop* _pLoop;
