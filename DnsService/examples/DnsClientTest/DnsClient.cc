@@ -82,7 +82,7 @@ class DnsClient : public IMuduoUser
 		//msgdata
 		lars::GetRouteRequest req;
 		req.set_modid(1);
-		req.set_cmdid(1);
+		req.set_cmdid(2);
 		req.SerializeToString(&msgdata);
 		buf.append(msgdata.data(), msgdata.size());
 		//msghead
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	NetAddress serverAddr("127.0.0.1", 11111);
 	DnsClient client(&loop, serverAddr);
 	client.connect();
-	loop.runEvery(2, std::bind(&DnsClient::sendRouteRequestMsg, &client, lars::ID_GetRouteRequest));
+	loop.runAfter(2, std::bind(&DnsClient::sendRouteRequestMsg, &client, lars::ID_GetRouteRequest));
 	loop.loop();
 
     return 0;

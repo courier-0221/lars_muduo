@@ -79,9 +79,14 @@ void DnsSubscribe::pushChangeTask(void)
         //遍历fd对应的 modid/cmdid的集合
         for (ms_it = it->second.begin(); ms_it != it->second.end(); ms_it++) 
         {
+            Buffer buf = {0};
+		    MsgHead msghead = {0};
+		    string msgdata = {0};
+
             int modid = int((*ms_it) >> 32);
             int cmdid = int(*ms_it);
 
+            //msgdata
             lars::GetRouteResponse rsp;
             rsp.set_modid(modid);
             rsp.set_cmdid(cmdid);
@@ -98,12 +103,18 @@ void DnsSubscribe::pushChangeTask(void)
             }
 
             //将rsp 发送给对应的 clientfd
-            std::string responseString;
-            rsp.SerializeToString(&responseString);
+            rsp.SerializeToString(&msgdata);
+		    buf.append(msgdata.data(), msgdata.size());
 
+            //msghead
+            msghead.msgId = hostToNetwork32(lars::ID_GetRouteResponse);
+            msghead.msgLen = hostToNetwork32(static_cast<int32_t>(msgdata.size()));
+            buf.prepend(&msghead, sizeof msghead);
+            //msghead + msgdata ==> send
+            string response(buf.peek(), buf.readableBytes());
             //通过fd得到连接对象
             TcpConnectionPtr conn = gDnsService->_clientMap[fd];
-            conn->send(responseString);
+            conn->send(response);
 
             _pushList.erase(fd);
         }
