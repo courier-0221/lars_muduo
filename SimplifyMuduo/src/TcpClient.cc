@@ -6,6 +6,7 @@ TcpClient::TcpClient(EventLoop* loop, const NetAddress& serverAddr)
     , _pUser(NULL)
     , _connector(new Connector(loop, serverAddr))
     , _connection(NULL)
+    , _msgRouter()
 {
 }
 

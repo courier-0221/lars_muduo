@@ -26,12 +26,14 @@ int Acceptor::createAndListen()
 
     if (-1 == ::bind(_listenfd, (struct sockaddr *)&servaddr, sizeof(servaddr)))
     {
-        cout << "bind error, errno:" << errno << endl;
+        perror("bind error");
+        exit(-1);
     }
 
     if (-1 == ::listen(_listenfd, MAX_LISTENFD))
     {
-        cout << "listen error, errno:" << errno << endl;
+        perror("listen error");
+        exit(-1);
     }
     return _listenfd;
 }
